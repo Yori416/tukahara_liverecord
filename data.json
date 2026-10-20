@@ -1,0 +1,23 @@
+{
+  "channel": {
+    "name": "わらびもち【にじさんじ切り抜き】",
+    "handle": "@TsukaharaDaichi_Y4T4",
+    "icon": "https://yt3.googleusercontent.com/6P9iIcY_ois64OMv3Os6hsEho_MUCpJ3pwCRUuUvODYChpvpy43z_af3eu1hg53rlCP0f-u6Sg=s900-c-k-c0x00ffffff-no-rj"
+  },
+  "streams": [
+    {
+      "type": "upload",
+      "title": "パンダヒーロー / Covered by Y4T4男 (塚原大地×男虎×レヨン×九里詠太)【にじさんじ】",
+      "video_id": "I67xVNUMj9k",
+      "thumbnail": "https://i.ytimg.com/vi/I67xVNUMj9k/maxresdefault.jpg",
+      "published_at": "1週前"
+    },
+    {
+      "type": "upload",
+      "title": "【浮気判定シート】塚原大地の恋愛観を話してみる。【塚原大地 / にじさんじ】",
+      "video_id": "GriXje18gMA",
+      "thumbnail": "https://i.ytimg.com/vi/GriXje18gMA/maxresdefault.jpg",
+      "published_at": "4日前"
+    }
+  ]
+}
