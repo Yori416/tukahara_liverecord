@@ -1,17 +1,20 @@
 import json
 import xml.etree.ElementTree as ET
-import re
 import requests
 import os
 
-CHANNEL_ID = "UCriPI_vMh2Aven_czYRWxhw" # 塚原大地 官方頻道 ID
+CHANNEL_ID = "UCriPI_vMh2Aven_czYRWxhw"
 CHANNEL_HANDLE = "@TsukaharaDaichi_Y4T4"
-RSS_URL = f"https://www.youtube.com/feeds/videos.xml?channel_id={CHANNEL_ID}"
-LIVE_URL = f"https://www.youtube.com/channel/{CHANNEL_ID}/live"
+
+# 使用多個備用 Invidious / RSS 鏡站，防止單一節點失效
+RSS_SOURCES = [
+    f"https://www.youtube.com/feeds/videos.xml?channel_id={CHANNEL_ID}",
+    f"https://invidious.nerdvpn.de/feed/channel/{CHANNEL_ID}",
+    f"https://yewtu.be/feed/channel/{CHANNEL_ID}"
+]
 
 HEADERS = {
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-    "Accept-Language": "ja-JP,ja;q=0.9"
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
 }
 
 def load_existing_data():
@@ -23,36 +26,48 @@ def load_existing_data():
             pass
     return {"streams": []}
 
-def fetch_rss_videos():
+def fetch_all_rss_videos():
     videos = []
-    try:
-        res = requests.get(RSS_URL, headers=HEADERS, timeout=10)
-        root = ET.fromstring(res.text)
-        ns = {'atom': 'http://www.w3.org/2005/Atom', 'yt': 'http://www.youtube.com/xml/schemas/2015'}
-        
-        for entry in root.findall('atom:entry', ns):
-            video_id = entry.find('yt:videoId', ns).text
-            title = entry.find('atom:title', ns).text
-            published_full = entry.find('atom:published', ns).text
-            date_str = published_full.split('T')[0] # YYYY-MM-DD
+    for url in RSS_SOURCES:
+        try:
+            print(f"嘗試從 {url} 擷取影片清單...")
+            res = requests.get(url, headers=HEADERS, timeout=8)
+            if res.status_code == 200 and "<entry>" in res.text:
+                root = ET.fromstring(res.text)
+                ns = {'atom': 'http://www.w3.org/2005/Atom', 'yt': 'http://www.youtube.com/xml/schemas/2015'}
+                
+                for entry in root.findall('atom:entry', ns):
+                    video_id = entry.find('yt:videoId', ns).text
+                    title = entry.find('atom:title', ns).text
+                    published_full = entry.find('atom:published', ns).text
+                    date_str = published_full.split('T')[0] # YYYY-MM-DD
+                    
+                    videos.append({
+                        "type": "upload",
+                        "title": title,
+                        "video_id": video_id,
+                        "thumbnail": f"https://i.ytimg.com/vi/{video_id}/hqdefault.jpg",
+                        "published_at": date_str,
+                        "date": date_str
+                    })
+                
+                if len(videos) > 0:
+                    print(f"成功抓取到 {len(videos)} 條影片紀錄！")
+                    break
+        except Exception as e:
+            print(f"該來源失敗，切換下一來源: {e}")
             
-            videos.append({
-                "type": "upload",
-                "title": title,
-                "video_id": video_id,
-                "thumbnail": f"https://i.ytimg.com/vi/{video_id}/hqdefault.jpg",
-                "published_at": date_str,
-                "date": date_str
-            })
-    except Exception as e:
-        print(f"RSS 抓取失敗: {e}")
     return videos
 
 if __name__ == "__main__":
     existing = load_existing_data()
-    existing_streams = {s["video_id"]: s for s in existing.get("streams", [])}
+    # 建立歷史紀錄 Map，避免舊的資料被刪除
+    existing_streams = {s["video_id"]: s for s in existing.get("streams", []) if "video_id" in s}
 
-    new_videos = fetch_rss_videos()
+    # 1. 抓取最新影片
+    new_videos = fetch_all_rss_videos()
+    
+    # 2. 追加與合併（新舊資料融合）
     for v in new_videos:
         existing_streams[v["video_id"]] = v
         
@@ -63,7 +78,7 @@ if __name__ == "__main__":
         "channel": {
             "name": "塚原大地 / Tsukahara Daichi【にじさんじ】",
             "handle": CHANNEL_HANDLE,
-            "icon": "https://yt3.googleusercontent.com/ytc/AIdro_nN_sXoH6Yf8L0X3C2v4gB9T3G_M9_0Q2zN0W1=s900-c-k-c0x00ffffff-no-rj"
+            "icon": "https://ui-avatars.com/api/?name=Daichi&background=1e293b&color=38bdf8&size=200&bold=true"
         },
         "streams": combined_list
     }
@@ -71,4 +86,4 @@ if __name__ == "__main__":
     with open("data.json", "w", encoding="utf-8") as f:
         json.dump(output, f, ensure_ascii=False, indent=2)
         
-    print(f"成功更新！共有 {len(combined_list)} 筆紀錄。")
+    print(f"更新完畢！目前歷史資料庫共累積了 {len(combined_list)} 條紀錄。")
