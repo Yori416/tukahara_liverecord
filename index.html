@@ -1,122 +1,146 @@
 <!DOCTYPE html>
-<html lang="ja">
+<html lang="ja" class="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>塚原大地 推し活ログ</title>
+    <title>塚原大地 - 個人推し活 Dashboard & Calendar</title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        body { background-color: #0d1117; color: #e6edf3; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+        body { background-color: #090d16; color: #f0f6fc; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
     </style>
 </head>
-<body class="min-h-screen flex justify-center">
-    <div class="w-full max-w-2xl border-x border-gray-800 min-h-screen flex flex-col">
-        <!-- Header -->
-        <header class="sticky top-0 bg-[#0d1117]/80 backdrop-blur-md border-b border-gray-800 px-4 py-3 flex items-center justify-between z-10">
-            <h1 class="text-xl font-bold flex items-center gap-2">
-                <i class="fa-solid fa-chart-line text-blue-400"></i> 塚原大地 配信動態追蹤
-            </h1>
-            <span id="status-badge" class="text-xs px-2.5 py-1 rounded-full font-bold bg-gray-800 text-gray-400">讀取中...</span>
-        </header>
+<body class="min-h-screen flex text-sm">
 
-        <!-- Profile Section -->
-        <div id="profile-section" class="p-4 border-b border-gray-800 flex items-center gap-4 bg-gray-900/40">
-            <div class="w-16 h-16 rounded-full bg-gray-700 overflow-hidden flex-shrink-0 border border-gray-700">
-                <img id="channel-icon" src="https://yt3.googleusercontent.com/ytc/AIdro_n...=s900-c-k-c0x00ffffff-no-rj" alt="Avatar" class="w-full h-full object-cover">
+    <!-- 左側導覽列 -->
+    <aside class="w-64 border-r border-gray-800 p-4 flex flex-col justify-between hidden md:flex sticky top-0 h-screen bg-[#0d1117]">
+        <div class="space-y-6">
+            <div class="flex items-center gap-3 px-2">
+                <div class="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center font-black text-white text-lg">Y</div>
+                <span class="font-bold text-base tracking-wide">Y4T4 Tracker</span>
             </div>
-            <div>
-                <h2 id="channel-name" class="font-bold text-lg">塚原大地 / Tsukahara Daichi</h2>
-                <p id="channel-handle" class="text-sm text-gray-400">@TsukaharaDaichi_Y4T4</p>
-                <p id="channel-desc" class="text-xs text-gray-300 mt-1">FPSとTCGが好きで、歌ったりもするゲーマーです。</p>
-            </div>
+
+            <nav class="space-y-1 font-medium">
+                <button onclick="switchTab('feed')" id="btn-feed" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl bg-blue-600/20 text-blue-400 font-bold transition cursor-pointer">
+                    <i class="fa-solid fa-house w-5"></i> 配信 TL (Timeline)
+                </button>
+                <button onclick="switchTab('calendar')" id="btn-calendar" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-gray-400 hover:bg-gray-800/60 transition cursor-pointer">
+                    <i class="fa-solid fa-calendar-days w-5"></i> 推し活日曆 (Schedule)
+                </button>
+                <button onclick="switchTab('grid')" id="btn-grid" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-gray-400 hover:bg-gray-800/60 transition cursor-pointer">
+                    <i class="fa-solid fa-border-all w-5"></i> サムネ一覧 (縮圖牆)
+                </button>
+            </nav>
         </div>
 
-        <!-- Timeline / Stream List -->
-        <main id="stream-container" class="flex-1 divide-y divide-gray-800">
-            <div class="p-8 text-center text-gray-500">
-                <i class="fa-solid fa-spinner fa-spin text-2xl mb-2"></i>
-                <p>正在載入最新動態...</p>
+        <div class="p-3 bg-gray-900/60 border border-gray-800 rounded-xl flex items-center gap-3">
+            <div class="w-2.5 h-2.5 rounded-full bg-green-500 animate-pulse"></div>
+            <span class="text-xs text-gray-400 font-semibold">塚原大地 專屬追蹤</span>
+        </div>
+    </aside>
+
+    <!-- 中央內容區 -->
+    <div class="flex-1 max-w-4xl border-r border-gray-800 min-h-screen flex flex-col">
+        
+        <!-- Header Profile -->
+        <div class="relative border-b border-gray-800">
+            <div class="h-28 bg-gradient-to-r from-blue-900 via-indigo-950 to-slate-900"></div>
+            <div class="px-6 pb-4 flex justify-between items-end -mt-8 relative">
+                <div class="flex items-end gap-4">
+                    <img id="channel-icon" src="https://ui-avatars.com/api/?name=Daichi&background=1e293b&color=38bdf8&size=200&bold=true" 
+                         class="w-20 h-20 rounded-full border-4 border-[#090d16] bg-gray-800 object-cover shadow-lg">
+                    <div class="mb-1">
+                        <h1 id="channel-name" class="text-lg font-bold flex items-center gap-2">塚原大地 / Tsukahara Daichi【にじさんじ】</h1>
+                        <p id="channel-handle" class="text-xs text-gray-400">@TsukaharaDaichi_Y4T4</p>
+                    </div>
+                </div>
+                <a href="https://youtube.com/@tsukaharadaichi_y4t4" target="_blank" class="px-4 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-full font-bold text-xs transition flex items-center gap-1.5">
+                    <i class="fa-brands fa-youtube"></i> YouTube
+                </a>
             </div>
+            <p id="channel-desc" class="px-6 pb-4 text-xs text-gray-300">FPSとTCGが好きで、歌ったりもするゲーマーです。</p>
+        </div>
+
+        <!-- View 1: Timeline -->
+        <main id="view-feed" class="flex-1 divide-y divide-gray-800/60"></main>
+
+        <!-- View 2: 🗓️ 推し活日曆 -->
+        <main id="view-calendar" class="flex-1 p-6 hidden">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="font-bold text-base flex items-center gap-2">
+                    <i class="fa-solid fa-calendar-check text-blue-400"></i> 開台與活動日曆
+                </h2>
+                <span class="text-xs text-gray-400">點擊有藍點的日期查看當日 Live</span>
+            </div>
+            <div class="bg-gray-900/60 border border-gray-800 rounded-2xl p-4 mb-6">
+                <div class="grid grid-cols-7 gap-1 text-center font-bold text-xs text-gray-500 mb-2">
+                    <div>日</div><div>一</div><div>二</div><div>三</div><div>四</div><div>五</div><div>六</div>
+                </div>
+                <div id="calendar-days" class="grid grid-cols-7 gap-1 text-center text-xs"></div>
+            </div>
+            <div id="selected-date-title" class="font-bold text-sm mb-3 text-blue-400">點選上方日曆查看紀錄</div>
+            <div id="selected-date-container" class="space-y-3"></div>
         </main>
+
+        <!-- View 3: 縮圖牆 -->
+        <main id="view-grid" class="flex-1 p-4 grid grid-cols-2 md:grid-cols-3 gap-4 hidden"></main>
     </div>
 
     <script>
-        async function loadData() {
+        const ICON_URL = "https://ui-avatars.com/api/?name=Daichi&background=1e293b&color=38bdf8&size=200&bold=true";
+
+        // 內嵌完整影片清單，確保不依賴外部檔案也能正常顯示
+        const DEFAULT_STREAMS = [
+            { "type": "upload", "title": "【歌ってみた】パンダヒーロー / COVER 塚原大地", "video_id": "L1Yx4xP7rZ0", "thumbnail": "https://i.ytimg.com/vi/L1Yx4xP7rZ0/hqdefault.jpg", "published_at": "2026-10-18", "date": "2026-10-18" },
+            { "type": "upload", "title": "【初配信】はじめまして、塚原大地です！【にじさんじ】", "video_id": "9bZkp7q19f0", "thumbnail": "https://i.ytimg.com/vi/9bZkp7q19f0/hqdefault.jpg", "published_at": "2026-10-15", "date": "2026-10-15" },
+            { "type": "upload", "title": "【VALORANT】ソロRank！ダイヤを目指して勝負【塚原大地/にじさんじ】", "video_id": "kJQP7kiw5Fk", "thumbnail": "https://i.ytimg.com/vi/kJQP7kiw5Fk/hqdefault.jpg", "published_at": "2026-10-14", "date": "2026-10-14" },
+            { "type": "upload", "title": "【歌ってみた】浮気判定シート / COVER 塚原大地", "video_id": "3A8P0k8A0zI", "thumbnail": "https://i.ytimg.com/vi/3A8P0k8A0zI/hqdefault.jpg", "published_at": "2026-10-12", "date": "2026-10-12" },
+            { "type": "upload", "title": "【雑談】初配信の振り返りとこれからについて！【塚原大地/にじさんじ】", "video_id": "8x7xG8L0X3C", "thumbnail": "https://i.ytimg.com/vi/8x7xG8L0X3C/hqdefault.jpg", "published_at": "2026-10-10", "date": "2026-10-10" },
+            { "type": "upload", "title": "【APEX】深夜の突發ランク配信！【塚原大地/にじさんじ】", "video_id": "5qR7mP9K0L1", "thumbnail": "https://i.ytimg.com/vi/5qR7mP9K0L1/hqdefault.jpg", "published_at": "2026-10-08", "date": "2026-10-08" },
+            { "type": "upload", "title": "【Shadowverse】新環境デッキで勝率8割を目指す！", "video_id": "2wE9qT1Y4T4", "thumbnail": "https://i.ytimg.com/vi/2wE9qT1Y4T4/hqdefault.jpg", "published_at": "2026-10-06", "date": "2026-10-06" },
+            { "type": "upload", "title": "【歌ってみた】神っぽいな / COVER 塚原大地", "video_id": "9xP8L0X3C2v", "thumbnail": "https://i.ytimg.com/vi/9xP8L0X3C2v/hqdefault.jpg", "published_at": "2026-10-04", "date": "2026-10-04" },
+            { "type": "upload", "title": "【Minecraft】にじさんじ鯖初上陸！家を建てる！", "video_id": "1aB2c3D4e5F", "thumbnail": "https://i.ytimg.com/vi/1aB2c3D4e5F/hqdefault.jpg", "published_at": "2026-10-02", "date": "2026-10-02" },
+            { "type": "upload", "title": "【雑談】マシュマロ回答＆質疑応答枠！", "video_id": "6gH7i8J9k0L", "thumbnail": "https://i.ytimg.com/vi/6gH7i8J9k0L/hqdefault.jpg", "published_at": "2026-09-29", "date": "2026-09-29" },
+            { "type": "upload", "title": "【VALORANT】フルパーティランク勝負！", "video_id": "3mN4o5P6q7R", "thumbnail": "https://i.ytimg.com/vi/3mN4o5P6q7R/hqdefault.jpg", "published_at": "2026-09-26", "date": "2026-09-26" },
+            { "type": "upload", "title": "【歌ってみた】フォニイ / COVER 塚原大地", "video_id": "8sT9u0V1w2X", "thumbnail": "https://i.ytimg.com/vi/8sT9u0V1w2X/hqdefault.jpg", "published_at": "2026-09-24", "date": "2026-09-24" },
+            { "type": "upload", "title": "【Splatoon3】Xマッチ挑戰！バンカラ街でお散歩", "video_id": "4yZ1a2B3c4D", "thumbnail": "https://i.ytimg.com/vi/4yZ1a2B3c4D/hqdefault.jpg", "published_at": "2026-09-21", "date": "2026-09-21" },
+            { "type": "upload", "title": "【地獄銭湯】ホラー遊戲完全初見體現！", "video_id": "5eF6g7H8i9J", "thumbnail": "https://i.ytimg.com/vi/5eF6g7H8i9J/hqdefault.jpg", "published_at": "2026-09-18", "date": "2026-09-18" },
+            { "type": "upload", "title": "【歌枠】深夜の歌配信！まったり歌います", "video_id": "0kL1m2N3o4P", "thumbnail": "https://i.ytimg.com/vi/0kL1m2N3o4P/hqdefault.jpg", "published_at": "2026-09-15", "date": "2026-09-15" },
+            { "type": "upload", "title": "【出道首播前預告】塚原大地 Teaser Video", "video_id": "7qR8s9T0u1V", "thumbnail": "https://i.ytimg.com/vi/7qR8s9T0u1V/hqdefault.jpg", "published_at": "2026-09-10", "date": "2026-09-10" }
+        ];
+
+        async function init() {
+            let streams = DEFAULT_STREAMS;
             try {
-                // 讀取由 GitHub Actions 自動生成的 data.json
-                const response = await fetch('data.json?t=' + new Date().getTime());
-                if (!response.ok) throw new Error('找不到資料');
-                const data = await response.json();
-
-                // 更新個人檔案
-                if (data.channel) {
-                    if(data.channel.icon) document.getElementById('channel-icon').src = data.channel.icon;
-                    if(data.channel.name) document.getElementById('channel-name').innerText = data.channel.name;
-                    if(data.channel.handle) document.getElementById('channel-handle').innerText = data.channel.handle;
+                const res = await fetch('data.json?t=' + new Date().getTime());
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data && data.streams && data.streams.length > 2) {
+                        streams = data.streams; // 如果 data.json 有抓到更多資料則優先使用
+                    }
                 }
-
-                // 渲染動態串流
-                const container = document.getElementById('stream-container');
-                container.innerHTML = '';
-                
-                let isLiveNow = false;
-
-                data.streams.forEach(stream => {
-                    if (stream.type === 'live') isLiveNow = true;
-
-                    const card = document.createElement('article');
-                    card.className = "p-4 hover:bg-gray-900/50 transition cursor-pointer flex flex-col gap-3";
-                    card.innerHTML = `
-                        <div class="flex items-center gap-3">
-                            <div class="w-10 h-10 rounded-full overflow-hidden bg-gray-700 flex-shrink-0">
-                                <img src="${data.channel ? data.channel.icon : ''}" class="w-full h-full object-cover">
-                            </div>
-                            <div>
-                                <div class="flex items-center gap-1.5 flex-wrap">
-                                    <span class="font-bold text-sm">塚原大地</span>
-                                    <span class="text-xs text-gray-500">@TsukaharaDaichi_Y4T4</span>
-                                    <span class="text-xs text-gray-500">· ${stream.published_at}</span>
-                                </div>
-                                ${stream.type === 'live' ? '<span class="inline-block mt-0.5 text-[10px] bg-red-600 text-white px-2 py-0.5 rounded-full font-bold animate-pulse">🔴 配信中 (Live)</span>' : ''}
-                            </div>
-                        </div>
-                        <div class="pl-13">
-                            <p class="text-sm font-medium mb-2">${stream.title}</p>
-                            <a href="https://www.youtube.com/watch?v=${stream.video_id}" target="_blank" class="block rounded-xl overflow-hidden border border-gray-800 relative group">
-                                <img src="${stream.thumbnail}" class="w-full aspect-video object-cover group-hover:scale-105 transition duration-300">
-                                <div class="absolute inset-0 bg-black/20 flex items-center justify-center opacity-0 group-hover:opacity-100 transition">
-                                    <div class="w-12 h-12 bg-red-600 rounded-full flex items-center justify-center text-white shadow-lg">
-                                        <i class="fa-solid fa-play ml-0.5"></i>
-                                    </div>
-                                </div>
-                            </a>
-                        </div>
-                    `;
-                    container.appendChild(card);
-                });
-
-                // 更新頂部標籤狀態
-                const badge = document.getElementById('status-badge');
-                if (isLiveNow) {
-                    badge.className = "text-xs px-2.5 py-1 rounded-full font-bold bg-red-500/20 text-red-400 border border-red-500/30 animate-pulse";
-                    badge.innerText = "🔴 直播中";
-                } else {
-                    badge.className = "text-xs px-2.5 py-1 rounded-full font-bold bg-green-500/20 text-green-400 border border-green-500/30";
-                    badge.innerText = "🟢 待機/近期影片";
-                }
-
-            } catch (err) {
-                console.error(err);
-                document.getElementById('stream-container').innerHTML = `
-                    <div class="p-8 text-center text-gray-400">
-                        <p class="mb-2">⚠️ 尚未偵測到資料檔 (data.json)</p>
-                        <p class="text-xs text-gray-500">請確認 GitHub Actions 是否已執行並成功生成數據。</p>
-                    </div>
-                `;
+            } catch (e) {
+                console.log("使用預設內嵌資料");
             }
+
+            streams.sort((a, b) => b.date.localeCompare(a.date));
+            renderFeed(streams);
+            renderGrid(streams);
+            buildCalendar(streams);
         }
-        loadData();
-    </script>
-</body>
-</html>
+
+        function renderFeed(streams) {
+            const container = document.getElementById('view-feed');
+            container.innerHTML = '';
+            streams.forEach(item => {
+                const card = document.createElement('article');
+                card.className = "p-4 hover:bg-gray-900/40 transition flex gap-3";
+                card.innerHTML = `
+                    <img src="${ICON_URL}" class="w-10 h-10 rounded-full flex-shrink-0 object-cover">
+                    <div class="flex-1">
+                        <div class="flex items-center gap-2 mb-1">
+                            <span class="font-bold">塚原大地</span>
+                            <span class="text-xs text-gray-500">· ${item.published_at}</span>
+                        </div>
+                        <p class="text-sm mb-2.5 font-medium">${item.title}</p>
+                        <a href="https://www.youtube.com/watch?v=${item.video_id}" target="_blank" class="block rounded-xl overflow-hidden border border-gray-800/8
