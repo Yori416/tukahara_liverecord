@@ -6,11 +6,12 @@ import os
 CHANNEL_ID = "UCriPI_vMh2Aven_czYRWxhw"
 CHANNEL_HANDLE = "@TsukaharaDaichi_Y4T4"
 
-# 使用多個備用 Invidious / RSS 鏡站，防止單一節點失效
+# 輪詢多個 RSS 及 Invidious 節點，防止單一 IP 被檔
 RSS_SOURCES = [
     f"https://www.youtube.com/feeds/videos.xml?channel_id={CHANNEL_ID}",
     f"https://invidious.nerdvpn.de/feed/channel/{CHANNEL_ID}",
-    f"https://yewtu.be/feed/channel/{CHANNEL_ID}"
+    f"https://yewtu.be/feed/channel/{CHANNEL_ID}",
+    f"https://invidious.flokinet.to/feed/channel/{CHANNEL_ID}"
 ]
 
 HEADERS = {
@@ -18,6 +19,7 @@ HEADERS = {
 }
 
 def load_existing_data():
+    """讀取歷史紀錄，確保舊資料不會遺失"""
     if os.path.exists("data.json"):
         try:
             with open("data.json", "r", encoding="utf-8") as f:
@@ -26,48 +28,51 @@ def load_existing_data():
             pass
     return {"streams": []}
 
-def fetch_all_rss_videos():
+def fetch_rss_videos():
     videos = []
     for url in RSS_SOURCES:
         try:
-            print(f"嘗試從 {url} 擷取影片清單...")
-            res = requests.get(url, headers=HEADERS, timeout=8)
+            print(f"嘗試抓取來源: {url}")
+            res = requests.get(url, headers=HEADERS, timeout=10)
             if res.status_code == 200 and "<entry>" in res.text:
                 root = ET.fromstring(res.text)
                 ns = {'atom': 'http://www.w3.org/2005/Atom', 'yt': 'http://www.youtube.com/xml/schemas/2015'}
                 
                 for entry in root.findall('atom:entry', ns):
-                    video_id = entry.find('yt:videoId', ns).text
-                    title = entry.find('atom:title', ns).text
-                    published_full = entry.find('atom:published', ns).text
-                    date_str = published_full.split('T')[0] # YYYY-MM-DD
+                    video_id_elem = entry.find('yt:videoId', ns)
+                    title_elem = entry.find('atom:title', ns)
+                    published_elem = entry.find('atom:published', ns)
                     
-                    videos.append({
-                        "type": "upload",
-                        "title": title,
-                        "video_id": video_id,
-                        "thumbnail": f"https://i.ytimg.com/vi/{video_id}/hqdefault.jpg",
-                        "published_at": date_str,
-                        "date": date_str
-                    })
+                    if video_id_elem is not None and title_elem is not None and published_elem is not None:
+                        video_id = video_id_elem.text
+                        title = title_elem.text
+                        published_full = published_elem.text
+                        date_str = published_full.split('T')[0]
+                        
+                        videos.append({
+                            "type": "upload",
+                            "title": title,
+                            "video_id": video_id,
+                            "thumbnail": f"https://i.ytimg.com/vi/{video_id}/hqdefault.jpg",
+                            "published_at": date_str,
+                            "date": date_str
+                        })
                 
                 if len(videos) > 0:
-                    print(f"成功抓取到 {len(videos)} 條影片紀錄！")
+                    print(f"✅ 成功獲取 {len(videos)} 條影片紀錄！")
                     break
         except Exception as e:
-            print(f"該來源失敗，切換下一來源: {e}")
+            print(f"❌ 來源 {url} 失敗: {e}")
             
     return videos
 
 if __name__ == "__main__":
     existing = load_existing_data()
-    # 建立歷史紀錄 Map，避免舊的資料被刪除
     existing_streams = {s["video_id"]: s for s in existing.get("streams", []) if "video_id" in s}
 
-    # 1. 抓取最新影片
-    new_videos = fetch_all_rss_videos()
+    new_videos = fetch_rss_videos()
     
-    # 2. 追加與合併（新舊資料融合）
+    # 追加並合併新舊數據
     for v in new_videos:
         existing_streams[v["video_id"]] = v
         
@@ -86,4 +91,4 @@ if __name__ == "__main__":
     with open("data.json", "w", encoding="utf-8") as f:
         json.dump(output, f, ensure_ascii=False, indent=2)
         
-    print(f"更新完畢！目前歷史資料庫共累積了 {len(combined_list)} 條紀錄。")
+    print(f"🎉 成功更新！累積資料總筆數: {len(combined_list)}")
