@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>塚原大地 - 個人推し活 Dashboard</title>
+    <title>塚原大地 - 個人推し活 Dashboard & Calendar</title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -22,34 +22,34 @@
 
             <nav class="space-y-1 font-medium">
                 <button onclick="switchTab('feed')" id="btn-feed" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl bg-blue-600/20 text-blue-400 font-bold transition">
-                    <i class="fa-solid fa-[#000] fa-house w-5"></i> 配信 TL (タイムライン)
+                    <i class="fa-solid fa-house w-5"></i> 配信 TL (Timeline)
+                </button>
+                <button onclick="switchTab('calendar')" id="btn-calendar" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-gray-400 hover:bg-gray-800/60 transition">
+                    <i class="fa-solid fa-calendar-days w-5"></i> 推し活日曆 (Schedule)
                 </button>
                 <button onclick="switchTab('grid')" id="btn-grid" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-gray-400 hover:bg-gray-800/60 transition">
                     <i class="fa-solid fa-border-all w-5"></i> サムネ一覧 (縮圖牆)
-                </button>
-                <button onclick="switchTab('stats')" id="btn-stats" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-gray-400 hover:bg-gray-800/60 transition">
-                    <i class="fa-solid fa-chart-pie w-5"></i> 週/月 配信統計
                 </button>
             </nav>
         </div>
 
         <div class="p-3 bg-gray-900/60 border border-gray-800 rounded-xl flex items-center gap-3">
-            <div id="sidebar-status-dot" class="w-2.5 h-2.5 rounded-full bg-green-500 animate-pulse"></div>
-            <span id="sidebar-status-text" class="text-xs text-gray-400 font-semibold">系統運作中</span>
+            <div class="w-2.5 h-2.5 rounded-full bg-green-500 animate-pulse"></div>
+            <span class="text-xs text-gray-400 font-semibold">自動同步運作中</span>
         </div>
     </aside>
 
-    <!-- 2. 中央主要內容區 -->
+    <!-- 2. 中央內容區 -->
     <div class="flex-1 max-w-4xl border-r border-gray-800 min-h-screen flex flex-col">
         
-        <!-- 個人 Banner & Profile -->
+        <!-- 個人 Banner & Profile Header -->
         <div class="relative border-b border-gray-800">
-            <div class="h-32 bg-gradient-to-r from-blue-900 via-indigo-950 to-slate-900"></div>
-            <div class="px-6 pb-4 flex justify-between items-end -mt-10 relative">
+            <div class="h-28 bg-gradient-to-r from-blue-900 via-indigo-950 to-slate-900"></div>
+            <div class="px-6 pb-4 flex justify-between items-end -mt-8 relative">
                 <div class="flex items-end gap-4">
-                    <img id="channel-icon" src="" class="w-20 h-20 rounded-full border-4 border-[#090d16] bg-gray-800 object-cover">
+                    <img id="channel-icon" src="https://yt3.googleusercontent.com/ytc/AIdro_nN_sXoH6Yf8L0X3C2v4gB9T3G_M9_0Q2zN0W1=s900-c-k-c0x00ffffff-no-rj" class="w-20 h-20 rounded-full border-4 border-[#090d16] bg-gray-800 object-cover">
                     <div class="mb-1">
-                        <h1 id="channel-name" class="text-xl font-bold flex items-center gap-2">塚原大地</h1>
+                        <h1 id="channel-name" class="text-lg font-bold flex items-center gap-2">塚原大地 / Tsukahara Daichi</h1>
                         <p id="channel-handle" class="text-xs text-gray-400">@TsukaharaDaichi_Y4T4</p>
                     </div>
                 </div>
@@ -60,26 +60,30 @@
             <p id="channel-desc" class="px-6 pb-4 text-xs text-gray-300">FPSとTCGが好きで、歌ったりもするゲーマーです。</p>
         </div>
 
-        <!-- View 1: 配信 TL (Twitter/X 卡片風) -->
+        <!-- View 1: Timeline -->
         <main id="view-feed" class="flex-1 divide-y divide-gray-800/60"></main>
 
-        <!-- View 2: サムネ一覧 (縮圖網格風) -->
-        <main id="view-grid" class="flex-1 p-4 grid grid-cols-2 md:grid-cols-3 gap-4 hidden"></main>
-
-        <!-- View 3: 簡單統計頁面 -->
-        <main id="view-stats" class="flex-1 p-6 hidden">
-            <h2 class="font-bold text-base mb-4">配信アクティビティ (Activity)</h2>
-            <div class="grid grid-cols-2 gap-4">
-                <div class="p-4 bg-gray-900/50 border border-gray-800 rounded-xl">
-                    <p class="text-xs text-gray-400 mb-1">近期影片/直播總數</p>
-                    <p id="stat-count" class="text-2xl font-black text-blue-400">0</p>
-                </div>
-                <div class="p-4 bg-gray-900/50 border border-gray-800 rounded-xl">
-                    <p class="text-xs text-gray-400 mb-1">目前狀態</p>
-                    <p id="stat-status" class="text-2xl font-black text-green-400">待機中</p>
-                </div>
+        <!-- View 2: 🗓️ 推し活日曆 (Schedule Calendar) -->
+        <main id="view-calendar" class="flex-1 p-6 hidden">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="font-bold text-base flex items-center gap-2">
+                    <i class="fa-solid fa-calendar-check text-blue-400"></i> 開台與活動日曆
+                </h2>
+                <span class="text-xs text-gray-400">點擊日期查看當日 Live</span>
             </div>
+            <div class="bg-gray-900/60 border border-gray-800 rounded-2xl p-4 mb-6">
+                <div class="grid grid-cols-7 gap-1 text-center font-bold text-xs text-gray-500 mb-2">
+                    <div>日</div><div>一</div><div>二</div><div>三</div><div>四</div><div>五</div><div>六</div>
+                </div>
+                <div id="calendar-days" class="grid grid-cols-7 gap-1 text-center text-xs"></div>
+            </div>
+            <!-- 選取日期的詳細結果 -->
+            <div id="selected-date-title" class="font-bold text-sm mb-3 text-blue-400">所有活動紀錄</div>
+            <div id="selected-date-container" class="space-y-3"></div>
         </main>
+
+        <!-- View 3: 縮圖牆 -->
+        <main id="view-grid" class="flex-1 p-4 grid grid-cols-2 md:grid-cols-3 gap-4 hidden"></main>
     </div>
 
     <script>
@@ -90,36 +94,40 @@
                 const res = await fetch('data.json?t=' + new Date().getTime());
                 currentData = await res.json();
 
-                // 更新 Profile (使用真實正確資料)
-                document.getElementById('channel-icon').src = currentData.channel.icon;
-                document.getElementById('channel-name').innerText = currentData.channel.name;
-                document.getElementById('channel-handle').innerText = currentData.channel.handle;
-                document.getElementById('channel-desc').innerText = currentData.channel.description;
+                // 強制套用官方頭像與資料
+                document.getElementById('channel-icon').src = "https://yt3.googleusercontent.com/ytc/AIdro_nN_sXoH6Yf8L0X3C2v4gB9T3G_M9_0Q2zN0W1=s900-c-k-c0x00ffffff-no-rj";
+                document.getElementById('channel-name').innerText = "塚原大地 / Tsukahara Daichi【にじさんじ】";
+                document.getElementById('channel-handle').innerText = "@TsukaharaDaichi_Y4T4";
+                document.getElementById('channel-desc').innerText = "FPSとTCGが好きで、歌ったりもするゲーマーです。";
 
-                renderFeed();
+                renderFeed(currentData.streams);
                 renderGrid();
-
-                document.getElementById('stat-count').innerText = currentData.streams.length;
+                buildCalendar();
                 
             } catch (e) {
                 console.error(e);
             }
         }
 
-        function renderFeed() {
+        function renderFeed(streams) {
             const container = document.getElementById('view-feed');
             container.innerHTML = '';
 
-            currentData.streams.forEach(item => {
+            if(streams.length === 0) {
+                container.innerHTML = `<div class="p-8 text-center text-gray-500">該日期無開台紀錄</div>`;
+                return;
+            }
+
+            streams.forEach(item => {
                 const isLive = item.type === 'live';
                 const card = document.createElement('article');
                 card.className = "p-4 hover:bg-gray-900/40 transition flex gap-3";
                 card.innerHTML = `
-                    <img src="${currentData.channel.icon}" class="w-10 h-10 rounded-full flex-shrink-0">
+                    <img src="https://yt3.googleusercontent.com/ytc/AIdro_nN_sXoH6Yf8L0X3C2v4gB9T3G_M9_0Q2zN0W1=s900-c-k-c0x00ffffff-no-rj" class="w-10 h-10 rounded-full flex-shrink-0">
                     <div class="flex-1">
                         <div class="flex items-center gap-2 mb-1">
-                            <span class="font-bold">${currentData.channel.name}</span>
-                            <span class="text-xs text-gray-500">${item.published_at}</span>
+                            <span class="font-bold">塚原大地</span>
+                            <span class="text-xs text-gray-500">· ${item.published_at}</span>
                             ${isLive ? '<span class="bg-red-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full animate-pulse">🔴 LIVE</span>' : ''}
                         </div>
                         <p class="text-sm mb-2.5 font-medium">${item.title}</p>
@@ -154,24 +162,90 @@
             });
         }
 
+        // 🗓️ 建立日曆邏輯
+        function buildCalendar() {
+            const container = document.getElementById('calendar-days');
+            container.innerHTML = '';
+
+            const today = new Date();
+            const year = today.getFullYear();
+            const month = today.getMonth();
+
+            const firstDay = new Date(year, month, 1).getDay();
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+            // 整理日期資料 Map
+            const eventMap = {};
+            currentData.streams.forEach(s => {
+                if(s.date) {
+                    if(!eventMap[s.date]) eventMap[s.date] = [];
+                    eventMap[s.date].push(s);
+                }
+            });
+
+            // 填充空白天數
+            for(let i=0; i<firstDay; i++) {
+                container.appendChild(document.createElement('div'));
+            }
+
+            // 生成當月天數
+            for(let day=1; day<=daysInMonth; day++) {
+                const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+                const hasEvent = eventMap[dateStr];
+
+                const dayCell = document.createElement('button');
+                dayCell.className = `h-10 rounded-lg flex flex-col items-center justify-center relative border border-gray-800/40 transition hover:bg-gray-800 ${hasEvent ? 'bg-blue-900/30 text-blue-300 border-blue-500/50 font-bold' : 'text-gray-400'}`;
+                dayCell.innerHTML = `
+                    <span>${day}</span>
+                    ${hasEvent ? '<div class="w-1.5 h-1.5 rounded-full bg-blue-400 mt-0.5"></div>' : ''}
+                `;
+                dayCell.onclick = () => filterByDate(dateStr, eventMap[dateStr] || []);
+                container.appendChild(dayCell);
+            }
+        }
+
+        function filterByDate(dateStr, events) {
+            document.getElementById('selected-date-title').innerText = `${dateStr} 的配信/影片紀錄`;
+            const container = document.getElementById('selected-date-container');
+            container.innerHTML = '';
+
+            if(events.length === 0) {
+                container.innerHTML = `<div class="p-4 text-center text-gray-500 bg-gray-900/40 rounded-xl border border-gray-800">這一天沒有開台紀錄</div>`;
+                return;
+            }
+
+            events.forEach(item => {
+                const card = document.createElement('div');
+                card.className = "p-3 bg-gray-900/60 border border-gray-800 rounded-xl flex gap-3 items-center";
+                card.innerHTML = `
+                    <img src="${item.thumbnail}" class="w-24 aspect-video object-cover rounded-lg">
+                    <div class="flex-1">
+                        <p class="font-bold text-xs line-clamp-1">${item.title}</p>
+                        <a href="https://www.youtube.com/watch?v=${item.video_id}" target="_blank" class="inline-block mt-1 text-[11px] text-blue-400 hover:underline">觀看影片 →</a>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
         function switchTab(tab) {
             document.getElementById('view-feed').classList.add('hidden');
+            document.getElementById('view-calendar').classList.add('hidden');
             document.getElementById('view-grid').classList.add('hidden');
-            document.getElementById('view-stats').classList.add('hidden');
 
             document.getElementById('btn-feed').className = "w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-gray-400 hover:bg-gray-800/60 transition";
+            document.getElementById('btn-calendar').className = "w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-gray-400 hover:bg-gray-800/60 transition";
             document.getElementById('btn-grid').className = "w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-gray-400 hover:bg-gray-800/60 transition";
-            document.getElementById('btn-stats').className = "w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-gray-400 hover:bg-gray-800/60 transition";
 
             if (tab === 'feed') {
                 document.getElementById('view-feed').classList.remove('hidden');
                 document.getElementById('btn-feed').className = "w-full flex items-center gap-3 px-3 py-2.5 rounded-xl bg-blue-600/20 text-blue-400 font-bold transition";
+            } else if (tab === 'calendar') {
+                document.getElementById('view-calendar').classList.remove('hidden');
+                document.getElementById('btn-calendar').className = "w-full flex items-center gap-3 px-3 py-2.5 rounded-xl bg-blue-600/20 text-blue-400 font-bold transition";
             } else if (tab === 'grid') {
                 document.getElementById('view-grid').classList.remove('hidden');
                 document.getElementById('btn-grid').className = "w-full flex items-center gap-3 px-3 py-2.5 rounded-xl bg-blue-600/20 text-blue-400 font-bold transition";
-            } else if (tab === 'stats') {
-                document.getElementById('view-stats').classList.remove('hidden');
-                document.getElementById('btn-stats').className = "w-full flex items-center gap-3 px-3 py-2.5 rounded-xl bg-blue-600/20 text-blue-400 font-bold transition";
             }
         }
 
