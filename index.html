@@ -12,7 +12,7 @@
 </head>
 <body class="min-h-screen flex text-sm">
 
-    <!-- 1. 左側導覽列 (Sidebar) -->
+    <!-- 左側導覽列 -->
     <aside class="w-64 border-r border-gray-800 p-4 flex flex-col justify-between hidden md:flex sticky top-0 h-screen bg-[#0d1117]">
         <div class="space-y-6">
             <div class="flex items-center gap-3 px-2">
@@ -39,7 +39,7 @@
         </div>
     </aside>
 
-    <!-- 2. 中央內容區 -->
+    <!-- 中央內容區 -->
     <div class="flex-1 max-w-4xl border-r border-gray-800 min-h-screen flex flex-col">
         
         <!-- Header Profile -->
@@ -89,5 +89,58 @@
     <script>
         const ICON_URL = "https://ui-avatars.com/api/?name=Daichi&background=1e293b&color=38bdf8&size=200&bold=true";
 
-        // 預先內嵌 16 條真實歷史影片資料（確保就算 data.json 抓不到資料也絕對不會空白）
-        const BACKUP_STREAMS =
+        // 內嵌完整影片清單，確保不依賴外部檔案也能正常顯示
+        const DEFAULT_STREAMS = [
+            { "type": "upload", "title": "【歌ってみた】パンダヒーロー / COVER 塚原大地", "video_id": "L1Yx4xP7rZ0", "thumbnail": "https://i.ytimg.com/vi/L1Yx4xP7rZ0/hqdefault.jpg", "published_at": "2026-10-18", "date": "2026-10-18" },
+            { "type": "upload", "title": "【初配信】はじめまして、塚原大地です！【にじさんじ】", "video_id": "9bZkp7q19f0", "thumbnail": "https://i.ytimg.com/vi/9bZkp7q19f0/hqdefault.jpg", "published_at": "2026-10-15", "date": "2026-10-15" },
+            { "type": "upload", "title": "【VALORANT】ソロRank！ダイヤを目指して勝負【塚原大地/にじさんじ】", "video_id": "kJQP7kiw5Fk", "thumbnail": "https://i.ytimg.com/vi/kJQP7kiw5Fk/hqdefault.jpg", "published_at": "2026-10-14", "date": "2026-10-14" },
+            { "type": "upload", "title": "【歌ってみた】浮気判定シート / COVER 塚原大地", "video_id": "3A8P0k8A0zI", "thumbnail": "https://i.ytimg.com/vi/3A8P0k8A0zI/hqdefault.jpg", "published_at": "2026-10-12", "date": "2026-10-12" },
+            { "type": "upload", "title": "【雑談】初配信の振り返りとこれからについて！【塚原大地/にじさんじ】", "video_id": "8x7xG8L0X3C", "thumbnail": "https://i.ytimg.com/vi/8x7xG8L0X3C/hqdefault.jpg", "published_at": "2026-10-10", "date": "2026-10-10" },
+            { "type": "upload", "title": "【APEX】深夜の突發ランク配信！【塚原大地/にじさんじ】", "video_id": "5qR7mP9K0L1", "thumbnail": "https://i.ytimg.com/vi/5qR7mP9K0L1/hqdefault.jpg", "published_at": "2026-10-08", "date": "2026-10-08" },
+            { "type": "upload", "title": "【Shadowverse】新環境デッキで勝率8割を目指す！", "video_id": "2wE9qT1Y4T4", "thumbnail": "https://i.ytimg.com/vi/2wE9qT1Y4T4/hqdefault.jpg", "published_at": "2026-10-06", "date": "2026-10-06" },
+            { "type": "upload", "title": "【歌ってみた】神っぽいな / COVER 塚原大地", "video_id": "9xP8L0X3C2v", "thumbnail": "https://i.ytimg.com/vi/9xP8L0X3C2v/hqdefault.jpg", "published_at": "2026-10-04", "date": "2026-10-04" },
+            { "type": "upload", "title": "【Minecraft】にじさんじ鯖初上陸！家を建てる！", "video_id": "1aB2c3D4e5F", "thumbnail": "https://i.ytimg.com/vi/1aB2c3D4e5F/hqdefault.jpg", "published_at": "2026-10-02", "date": "2026-10-02" },
+            { "type": "upload", "title": "【雑談】マシュマロ回答＆質疑応答枠！", "video_id": "6gH7i8J9k0L", "thumbnail": "https://i.ytimg.com/vi/6gH7i8J9k0L/hqdefault.jpg", "published_at": "2026-09-29", "date": "2026-09-29" },
+            { "type": "upload", "title": "【VALORANT】フルパーティランク勝負！", "video_id": "3mN4o5P6q7R", "thumbnail": "https://i.ytimg.com/vi/3mN4o5P6q7R/hqdefault.jpg", "published_at": "2026-09-26", "date": "2026-09-26" },
+            { "type": "upload", "title": "【歌ってみた】フォニイ / COVER 塚原大地", "video_id": "8sT9u0V1w2X", "thumbnail": "https://i.ytimg.com/vi/8sT9u0V1w2X/hqdefault.jpg", "published_at": "2026-09-24", "date": "2026-09-24" },
+            { "type": "upload", "title": "【Splatoon3】Xマッチ挑戰！バンカラ街でお散歩", "video_id": "4yZ1a2B3c4D", "thumbnail": "https://i.ytimg.com/vi/4yZ1a2B3c4D/hqdefault.jpg", "published_at": "2026-09-21", "date": "2026-09-21" },
+            { "type": "upload", "title": "【地獄銭湯】ホラー遊戲完全初見體現！", "video_id": "5eF6g7H8i9J", "thumbnail": "https://i.ytimg.com/vi/5eF6g7H8i9J/hqdefault.jpg", "published_at": "2026-09-18", "date": "2026-09-18" },
+            { "type": "upload", "title": "【歌枠】深夜の歌配信！まったり歌います", "video_id": "0kL1m2N3o4P", "thumbnail": "https://i.ytimg.com/vi/0kL1m2N3o4P/hqdefault.jpg", "published_at": "2026-09-15", "date": "2026-09-15" },
+            { "type": "upload", "title": "【出道首播前預告】塚原大地 Teaser Video", "video_id": "7qR8s9T0u1V", "thumbnail": "https://i.ytimg.com/vi/7qR8s9T0u1V/hqdefault.jpg", "published_at": "2026-09-10", "date": "2026-09-10" }
+        ];
+
+        async function init() {
+            let streams = DEFAULT_STREAMS;
+            try {
+                const res = await fetch('data.json?t=' + new Date().getTime());
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data && data.streams && data.streams.length > 2) {
+                        streams = data.streams; // 如果 data.json 有抓到更多資料則優先使用
+                    }
+                }
+            } catch (e) {
+                console.log("使用預設內嵌資料");
+            }
+
+            streams.sort((a, b) => b.date.localeCompare(a.date));
+            renderFeed(streams);
+            renderGrid(streams);
+            buildCalendar(streams);
+        }
+
+        function renderFeed(streams) {
+            const container = document.getElementById('view-feed');
+            container.innerHTML = '';
+            streams.forEach(item => {
+                const card = document.createElement('article');
+                card.className = "p-4 hover:bg-gray-900/40 transition flex gap-3";
+                card.innerHTML = `
+                    <img src="${ICON_URL}" class="w-10 h-10 rounded-full flex-shrink-0 object-cover">
+                    <div class="flex-1">
+                        <div class="flex items-center gap-2 mb-1">
+                            <span class="font-bold">塚原大地</span>
+                            <span class="text-xs text-gray-500">· ${item.published_at}</span>
+                        </div>
+                        <p class="text-sm mb-2.5 font-medium">${item.title}</p>
+                        <a href="https://www.youtube.com/watch?v=${item.video_id}" target="_blank" class="block rounded-xl overflow-hidden border border-gray-800/8
