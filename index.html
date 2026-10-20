@@ -12,7 +12,7 @@
 </head>
 <body class="min-h-screen flex text-sm">
 
-    <!-- 左側導覽列 (Sidebar) -->
+    <!-- 1. 左側導覽列 (Sidebar) -->
     <aside class="w-64 border-r border-gray-800 p-4 flex flex-col justify-between hidden md:flex sticky top-0 h-screen bg-[#0d1117]">
         <div class="space-y-6">
             <div class="flex items-center gap-3 px-2">
@@ -39,7 +39,7 @@
         </div>
     </aside>
 
-    <!-- 中央內容區 -->
+    <!-- 2. 中央內容區 -->
     <div class="flex-1 max-w-4xl border-r border-gray-800 min-h-screen flex flex-col">
         
         <!-- Header Profile -->
@@ -47,7 +47,6 @@
             <div class="h-28 bg-gradient-to-r from-blue-900 via-indigo-950 to-slate-900"></div>
             <div class="px-6 pb-4 flex justify-between items-end -mt-8 relative">
                 <div class="flex items-end gap-4">
-                    <!-- 使用穩定且絕對不會破圖的自適應頭像生成器，並直接代入頻道首字 -->
                     <img id="channel-icon" src="https://ui-avatars.com/api/?name=Daichi&background=1e293b&color=38bdf8&size=200&bold=true" 
                          class="w-20 h-20 rounded-full border-4 border-[#090d16] bg-gray-800 object-cover shadow-lg">
                     <div class="mb-1">
@@ -88,158 +87,7 @@
     </div>
 
     <script>
-        let currentData = null;
         const ICON_URL = "https://ui-avatars.com/api/?name=Daichi&background=1e293b&color=38bdf8&size=200&bold=true";
 
-        async function init() {
-            try {
-                const res = await fetch('data.json?t=' + new Date().getTime());
-                currentData = await res.json();
-                renderFeed(currentData.streams);
-                renderGrid();
-                buildCalendar();
-            } catch (e) {
-                console.error(e);
-            }
-        }
-
-        function renderFeed(streams) {
-            const container = document.getElementById('view-feed');
-            container.innerHTML = '';
-
-            if(!streams || streams.length === 0) {
-                container.innerHTML = `<div class="p-8 text-center text-gray-500">尚無資料</div>`;
-                return;
-            }
-
-            streams.forEach(item => {
-                const isLive = item.type === 'live';
-                const card = document.createElement('article');
-                card.className = "p-4 hover:bg-gray-900/40 transition flex gap-3";
-                card.innerHTML = `
-                    <img src="${ICON_URL}" class="w-10 h-10 rounded-full flex-shrink-0 object-cover">
-                    <div class="flex-1">
-                        <div class="flex items-center gap-2 mb-1">
-                            <span class="font-bold">塚原大地</span>
-                            <span class="text-xs text-gray-500">· ${item.published_at}</span>
-                            ${isLive ? '<span class="bg-red-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full animate-pulse">🔴 LIVE</span>' : ''}
-                        </div>
-                        <p class="text-sm mb-2.5 font-medium">${item.title}</p>
-                        <a href="https://www.youtube.com/watch?v=${item.video_id}" target="_blank" class="block rounded-xl overflow-hidden border border-gray-800/80 relative group">
-                            <img src="${item.thumbnail}" class="w-full aspect-video object-cover group-hover:scale-105 transition duration-300">
-                        </a>
-                    </div>
-                `;
-                container.appendChild(card);
-            });
-        }
-
-        function renderGrid() {
-            const container = document.getElementById('view-grid');
-            container.innerHTML = '';
-
-            currentData.streams.forEach(item => {
-                const card = document.createElement('a');
-                card.href = `https://www.youtube.com/watch?v=${item.video_id}`;
-                card.target = "_blank";
-                card.className = "block bg-gray-900/60 rounded-xl overflow-hidden border border-gray-800 hover:border-blue-500/50 transition group";
-                card.innerHTML = `
-                    <div class="aspect-video overflow-hidden relative">
-                        <img src="${item.thumbnail}" class="w-full h-full object-cover group-hover:scale-105 transition duration-300">
-                    </div>
-                    <div class="p-2.5">
-                        <p class="text-xs font-semibold line-clamp-2">${item.title}</p>
-                        <p class="text-[10px] text-gray-500 mt-1">${item.published_at}</p>
-                    </div>
-                `;
-                container.appendChild(card);
-            });
-        }
-
-        function buildCalendar() {
-            const container = document.getElementById('calendar-days');
-            container.innerHTML = '';
-
-            const today = new Date();
-            const year = today.getFullYear();
-            const month = today.getMonth();
-
-            const firstDay = new Date(year, month, 1).getDay();
-            const daysInMonth = new Date(year, month + 1, 0).getDate();
-
-            const eventMap = {};
-            currentData.streams.forEach(s => {
-                if(s.date) {
-                    if(!eventMap[s.date]) eventMap[s.date] = [];
-                    eventMap[s.date].push(s);
-                }
-            });
-
-            for(let i=0; i<firstDay; i++) {
-                container.appendChild(document.createElement('div'));
-            }
-
-            for(let day=1; day<=daysInMonth; day++) {
-                const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
-                const hasEvent = eventMap[dateStr];
-
-                const dayCell = document.createElement('button');
-                dayCell.className = `h-10 rounded-lg flex flex-col items-center justify-center relative border border-gray-800/40 transition hover:bg-gray-800 cursor-pointer ${hasEvent ? 'bg-blue-900/40 text-blue-300 border-blue-500/60 font-bold' : 'text-gray-400'}`;
-                dayCell.innerHTML = `
-                    <span>${day}</span>
-                    ${hasEvent ? '<div class="w-1.5 h-1.5 rounded-full bg-blue-400 mt-0.5"></div>' : ''}
-                `;
-                dayCell.onclick = () => filterByDate(dateStr, eventMap[dateStr] || []);
-                container.appendChild(dayCell);
-            }
-        }
-
-        function filterByDate(dateStr, events) {
-            document.getElementById('selected-date-title').innerText = `${dateStr} 的配信/影片紀錄`;
-            const container = document.getElementById('selected-date-container');
-            container.innerHTML = '';
-
-            if(events.length === 0) {
-                container.innerHTML = `<div class="p-4 text-center text-gray-500 bg-gray-900/40 rounded-xl border border-gray-800">這一天沒有開台紀錄</div>`;
-                return;
-            }
-
-            events.forEach(item => {
-                const card = document.createElement('div');
-                card.className = "p-3 bg-gray-900/60 border border-gray-800 rounded-xl flex gap-3 items-center";
-                card.innerHTML = `
-                    <img src="${item.thumbnail}" class="w-24 aspect-video object-cover rounded-lg">
-                    <div class="flex-1">
-                        <p class="font-bold text-xs line-clamp-1">${item.title}</p>
-                        <a href="https://www.youtube.com/watch?v=${item.video_id}" target="_blank" class="inline-block mt-1 text-[11px] text-blue-400 hover:underline">觀看影片 →</a>
-                    </div>
-                `;
-                container.appendChild(card);
-            });
-        }
-
-        function switchTab(tab) {
-            document.getElementById('view-feed').classList.add('hidden');
-            document.getElementById('view-calendar').classList.add('hidden');
-            document.getElementById('view-grid').classList.add('hidden');
-
-            document.getElementById('btn-feed').className = "w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-gray-400 hover:bg-gray-800/60 transition cursor-pointer";
-            document.getElementById('btn-calendar').className = "w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-gray-400 hover:bg-gray-800/60 transition cursor-pointer";
-            document.getElementById('btn-grid').className = "w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-gray-400 hover:bg-gray-800/60 transition cursor-pointer";
-
-            if (tab === 'feed') {
-                document.getElementById('view-feed').classList.remove('hidden');
-                document.getElementById('btn-feed').className = "w-full flex items-center gap-3 px-3 py-2.5 rounded-xl bg-blue-600/20 text-blue-400 font-bold transition cursor-pointer";
-            } else if (tab === 'calendar') {
-                document.getElementById('view-calendar').classList.remove('hidden');
-                document.getElementById('btn-calendar').className = "w-full flex items-center gap-3 px-3 py-2.5 rounded-xl bg-blue-600/20 text-blue-400 font-bold transition cursor-pointer";
-            } else if (tab === 'grid') {
-                document.getElementById('view-grid').classList.remove('hidden');
-                document.getElementById('btn-grid').className = "w-full flex items-center gap-3 px-3 py-2.5 rounded-xl bg-blue-600/20 text-blue-400 font-bold transition cursor-pointer";
-            }
-        }
-
-        init();
-    </script>
-</body>
-</html>
+        // 預先內嵌 16 條真實歷史影片資料（確保就算 data.json 抓不到資料也絕對不會空白）
+        const BACKUP_STREAMS =
