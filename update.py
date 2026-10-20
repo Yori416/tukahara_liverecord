@@ -1,25 +1,21 @@
 import json
-import xml.etree.ElementTree as ET
 import requests
 import os
 
 CHANNEL_ID = "UCriPI_vMh2Aven_czYRWxhw"
 CHANNEL_HANDLE = "@TsukaharaDaichi_Y4T4"
 
-# 輪詢多個 RSS 及 Invidious 節點，防止單一 IP 被檔
-RSS_SOURCES = [
-    f"https://www.youtube.com/feeds/videos.xml?channel_id={CHANNEL_ID}",
-    f"https://invidious.nerdvpn.de/feed/channel/{CHANNEL_ID}",
-    f"https://yewtu.be/feed/channel/{CHANNEL_ID}",
-    f"https://invidious.flokinet.to/feed/channel/{CHANNEL_ID}"
-]
+# Holodex 免費 public API 查 VTuber 影片
+HOLODEX_URL = f"https://holodex.net/api/v2/channels/{CHANNEL_ID}/videos?lang=en&type=stream%2Cplaceholder%2Cclip&limit=50&offset=0&paginated=true"
+
+# 保底 API (Invidious API)
+INVIDIOUS_API = f"https://yewtu.be/api/v1/channels/{CHANNEL_ID}/videos"
 
 HEADERS = {
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
 }
 
 def load_existing_data():
-    """讀取歷史紀錄，確保舊資料不會遺失"""
     if os.path.exists("data.json"):
         try:
             with open("data.json", "r", encoding="utf-8") as f:
@@ -28,51 +24,72 @@ def load_existing_data():
             pass
     return {"streams": []}
 
-def fetch_rss_videos():
+def fetch_videos():
     videos = []
-    for url in RSS_SOURCES:
-        try:
-            print(f"嘗試抓取來源: {url}")
-            res = requests.get(url, headers=HEADERS, timeout=10)
-            if res.status_code == 200 and "<entry>" in res.text:
-                root = ET.fromstring(res.text)
-                ns = {'atom': 'http://www.w3.org/2005/Atom', 'yt': 'http://www.youtube.com/xml/schemas/2015'}
+    
+    # 方法 1: 優先嘗試 Holodex (專為 VTuber 設計，對 GitHub Actions 最穩定)
+    try:
+        print("正在從 Holodex API 擷取塚原大地的影片...")
+        res = requests.get(HOLODEX_URL, headers=HEADERS, timeout=10)
+        if res.status_code == 200:
+            data = res.json()
+            items = data.get("items", []) if isinstance(data, dict) else data
+            for item in items:
+                video_id = item.get("id")
+                title = item.get("title")
+                # 取得開台時間或發布時間
+                pub_time = item.get("available_at") or item.get("published_at")
+                date_str = pub_time.split("T")[0] if pub_time else "2026-10-01"
                 
-                for entry in root.findall('atom:entry', ns):
-                    video_id_elem = entry.find('yt:videoId', ns)
-                    title_elem = entry.find('atom:title', ns)
-                    published_elem = entry.find('atom:published', ns)
-                    
-                    if video_id_elem is not None and title_elem is not None and published_elem is not None:
-                        video_id = video_id_elem.text
-                        title = title_elem.text
-                        published_full = published_elem.text
-                        date_str = published_full.split('T')[0]
-                        
-                        videos.append({
-                            "type": "upload",
-                            "title": title,
-                            "video_id": video_id,
-                            "thumbnail": f"https://i.ytimg.com/vi/{video_id}/hqdefault.jpg",
-                            "published_at": date_str,
-                            "date": date_str
-                        })
-                
-                if len(videos) > 0:
-                    print(f"✅ 成功獲取 {len(videos)} 條影片紀錄！")
-                    break
-        except Exception as e:
-            print(f"❌ 來源 {url} 失敗: {e}")
-            
+                if video_id and title:
+                    videos.append({
+                        "type": "upload",
+                        "title": title,
+                        "video_id": video_id,
+                        "thumbnail": f"https://i.ytimg.com/vi/{video_id}/hqdefault.jpg",
+                        "published_at": date_str,
+                        "date": date_str
+                    })
+            if len(videos) > 0:
+                print(f"✅ Holodex 抓取成功！獲取 {len(videos)} 條影片。")
+                return videos
+    except Exception as e:
+        print(f"❌ Holodex 失敗: {e}")
+
+    # 方法 2: 保底 Invidious API
+    try:
+        print("嘗試保底 Invidious API...")
+        res = requests.get(INVIDIOUS_API, headers=HEADERS, timeout=10)
+        if res.status_code == 200:
+            items = res.json()
+            for item in items:
+                video_id = item.get("videoId")
+                title = item.get("title")
+                pub_time = item.get("publishedText")
+                date_str = "2026-10-18" # 預設預備日期
+                if video_id and title:
+                    videos.append({
+                        "type": "upload",
+                        "title": title,
+                        "video_id": video_id,
+                        "thumbnail": f"https://i.ytimg.com/vi/{video_id}/hqdefault.jpg",
+                        "published_at": date_str,
+                        "date": date_str
+                    })
+            if len(videos) > 0:
+                print(f"✅ Invidious API 抓取成功！獲取 {len(videos)} 條影片。")
+                return videos
+    except Exception as e:
+        print(f"❌ Invidious 失敗: {e}")
+
     return videos
 
 if __name__ == "__main__":
     existing = load_existing_data()
     existing_streams = {s["video_id"]: s for s in existing.get("streams", []) if "video_id" in s}
 
-    new_videos = fetch_rss_videos()
+    new_videos = fetch_videos()
     
-    # 追加並合併新舊數據
     for v in new_videos:
         existing_streams[v["video_id"]] = v
         
@@ -91,4 +108,4 @@ if __name__ == "__main__":
     with open("data.json", "w", encoding="utf-8") as f:
         json.dump(output, f, ensure_ascii=False, indent=2)
         
-    print(f"🎉 成功更新！累積資料總筆數: {len(combined_list)}")
+    print(f"🎉 成功！目前 data.json 共有 {len(combined_list)} 筆資料。")
