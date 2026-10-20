@@ -47,9 +47,9 @@
             <div class="h-28 bg-gradient-to-r from-blue-900 via-indigo-950 to-slate-900"></div>
             <div class="px-6 pb-4 flex justify-between items-end -mt-8 relative">
                 <div class="flex items-end gap-4">
-                    <!-- 使用穩定可靠的官方頭像圖源 -->
-                    <img id="channel-icon" src="https://yt3.googleusercontent.com/ytc/AIdro_nN_sXoH6Yf8L0X3C2v4gB9T3G_M9_0Q2zN0W1=s900-c-k-c0x00ffffff-no-rj" 
-                         class="w-20 h-20 rounded-full border-4 border-[#090d16] bg-gray-800 object-cover">
+                    <!-- 使用穩定且絕對不會破圖的自適應頭像生成器，並直接代入頻道首字 -->
+                    <img id="channel-icon" src="https://ui-avatars.com/api/?name=Daichi&background=1e293b&color=38bdf8&size=200&bold=true" 
+                         class="w-20 h-20 rounded-full border-4 border-[#090d16] bg-gray-800 object-cover shadow-lg">
                     <div class="mb-1">
                         <h1 id="channel-name" class="text-lg font-bold flex items-center gap-2">塚原大地 / Tsukahara Daichi【にじさんじ】</h1>
                         <p id="channel-handle" class="text-xs text-gray-400">@TsukaharaDaichi_Y4T4</p>
@@ -89,7 +89,7 @@
 
     <script>
         let currentData = null;
-        const ICON_URL = "https://yt3.googleusercontent.com/ytc/AIdro_nN_sXoH6Yf8L0X3C2v4gB9T3G_M9_0Q2zN0W1=s900-c-k-c0x00ffffff-no-rj";
+        const ICON_URL = "https://ui-avatars.com/api/?name=Daichi&background=1e293b&color=38bdf8&size=200&bold=true";
 
         async function init() {
             try {
@@ -229,4 +229,17 @@
 
             if (tab === 'feed') {
                 document.getElementById('view-feed').classList.remove('hidden');
-                document.getElementById('btn-feed').className = "w-full flex items-center gap-3 px-3 py
+                document.getElementById('btn-feed').className = "w-full flex items-center gap-3 px-3 py-2.5 rounded-xl bg-blue-600/20 text-blue-400 font-bold transition cursor-pointer";
+            } else if (tab === 'calendar') {
+                document.getElementById('view-calendar').classList.remove('hidden');
+                document.getElementById('btn-calendar').className = "w-full flex items-center gap-3 px-3 py-2.5 rounded-xl bg-blue-600/20 text-blue-400 font-bold transition cursor-pointer";
+            } else if (tab === 'grid') {
+                document.getElementById('view-grid').classList.remove('hidden');
+                document.getElementById('btn-grid').className = "w-full flex items-center gap-3 px-3 py-2.5 rounded-xl bg-blue-600/20 text-blue-400 font-bold transition cursor-pointer";
+            }
+        }
+
+        init();
+    </script>
+</body>
+</html>
