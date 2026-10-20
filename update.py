@@ -2,8 +2,9 @@ import json
 import xml.etree.ElementTree as ET
 import re
 import requests
+import os
 
-CHANNEL_ID = "UCriPI_vMh2Aven_czYRWxhw"
+CHANNEL_ID = "UCriPI_vMh2Aven_czYRWxhw" # 塚原大地 官方頻道 ID
 CHANNEL_HANDLE = "@TsukaharaDaichi_Y4T4"
 RSS_URL = f"https://www.youtube.com/feeds/videos.xml?channel_id={CHANNEL_ID}"
 LIVE_URL = f"https://www.youtube.com/channel/{CHANNEL_ID}/live"
@@ -13,16 +14,16 @@ HEADERS = {
     "Accept-Language": "ja-JP,ja;q=0.9"
 }
 
-def get_channel_data():
-    # 鎖定 100% 正確的官方頭像與資料
-    channel = {
-        "name": "塚原大地 / Tsukahara Daichi【にじさんじ】",
-        "handle": CHANNEL_HANDLE,
-        "icon": "https://yt3.googleusercontent.com/ytc/AIdro_nN_sXoH6Yf8L0X3C2v4gB9T3G_M9_0Q2zN0W1=s900-c-k-c0x00ffffff-no-rj",
-        "description": "FPSとTCGが好きで、歌ったりもするゲーマーです。"
-    }
+def load_existing_data():
+    if os.path.exists("data.json"):
+        try:
+            with open("data.json", "r", encoding="utf-8") as f:
+                return json.load(f)
+        except Exception:
+            pass
+    return {"streams": []}
 
-    # 透過 RSS 抓取影片，並精確處理日期 YYYY-MM-DD (供日曆定位)
+def fetch_rss_videos():
     videos = []
     try:
         res = requests.get(RSS_URL, headers=HEADERS, timeout=10)
@@ -32,55 +33,42 @@ def get_channel_data():
         for entry in root.findall('atom:entry', ns):
             video_id = entry.find('yt:videoId', ns).text
             title = entry.find('atom:title', ns).text
-            published_full = entry.find('atom:published', ns).text # ISO format
-            date_str = published_full.split('T')[0] # 取得 YYYY-MM-DD
+            published_full = entry.find('atom:published', ns).text
+            date_str = published_full.split('T')[0] # YYYY-MM-DD
             
             videos.append({
                 "type": "upload",
                 "title": title,
                 "video_id": video_id,
-                "thumbnail": f"https://i.ytimg.com/vi/{video_id}/maxresdefault.jpg",
+                "thumbnail": f"https://i.ytimg.com/vi/{video_id}/hqdefault.jpg",
                 "published_at": date_str,
                 "date": date_str
             })
     except Exception as e:
         print(f"RSS 抓取失敗: {e}")
-
-    return channel, videos
-
-def check_live_status():
-    try:
-        res = requests.get(LIVE_URL, headers=HEADERS, timeout=5)
-        soup = BeautifulSoup(res.text, 'html.parser')
-        og_type = soup.find("meta", property="og:type")
-        if og_type and og_type["content"] == "video":
-            og_image = soup.find("meta", property="og:image")
-            og_title = soup.find("meta", property="og:title")
-            if og_image:
-                img_url = og_image["content"]
-                vid_match = re.search(r'/vi/([a-zA-Z0-9_-]+)/', img_url)
-                if vid_match:
-                    import datetime
-                    today_str = datetime.datetime.now().strftime("%Y-%m-%d")
-                    return {
-                        "type": "live",
-                        "title": og_title["content"] if og_title else "【直播中】塚原大地の配信",
-                        "video_id": vid_match.group(1),
-                        "thumbnail": img_url,
-                        "published_at": "🔴 直播中",
-                        "date": today_str
-                    }
-    except Exception:
-        pass
-    return None
+    return videos
 
 if __name__ == "__main__":
-    channel, videos = get_channel_data()
-    live = check_live_status()
-    if live:
-        videos.insert(0, live)
+    existing = load_existing_data()
+    existing_streams = {s["video_id"]: s for s in existing.get("streams", [])}
+
+    new_videos = fetch_rss_videos()
+    for v in new_videos:
+        existing_streams[v["video_id"]] = v
         
-    output = {"channel": channel, "streams": videos}
+    combined_list = list(existing_streams.values())
+    combined_list.sort(key=lambda x: x.get("date", ""), reverse=True)
+
+    output = {
+        "channel": {
+            "name": "塚原大地 / Tsukahara Daichi【にじさんじ】",
+            "handle": CHANNEL_HANDLE,
+            "icon": "https://yt3.googleusercontent.com/ytc/AIdro_nN_sXoH6Yf8L0X3C2v4gB9T3G_M9_0Q2zN0W1=s900-c-k-c0x00ffffff-no-rj"
+        },
+        "streams": combined_list
+    }
+    
     with open("data.json", "w", encoding="utf-8") as f:
         json.dump(output, f, ensure_ascii=False, indent=2)
-    print("已成功生成包含日曆數據的 data.json！")
+        
+    print(f"成功更新！共有 {len(combined_list)} 筆紀錄。")
